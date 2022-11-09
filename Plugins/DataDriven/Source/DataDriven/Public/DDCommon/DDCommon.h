@@ -1,0 +1,113 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "DDDefine.h"
+#include "DDGame/DGCommon.h"
+#include "DDCommon.generated.h"
+
+class ADDDriver;
+
+namespace DDH
+{
+	FORCEINLINE DDRecord& Debug(float InTime = 3000.f, FColor InColor = FColor::Yellow)
+	{
+		DDRecord::Get()->PatternID = 0;
+		DDRecord::Get()->InitParam(InTime, InColor);
+		return *DDRecord::Get();
+	}
+
+	FORCEINLINE DDRecord& Debug(FColor InColor)
+	{
+		return Debug(3000.f, InColor);
+	}
+
+	FORCEINLINE DDRecord& Log()
+	{
+		DDRecord::Get()->PatternID = 1;
+		return *DDRecord::Get();
+	}
+
+	FORCEINLINE DDRecord& Warning()
+	{
+		DDRecord::Get()->PatternID = 2;
+		return *DDRecord::Get();
+	}
+
+	FORCEINLINE DDRecord& Error()
+	{
+		DDRecord::Get()->PatternID = 3;
+		return *DDRecord::Get();
+	}
+
+	FORCEINLINE DDRecord& Endl()
+	{
+		return *DDRecord::Get();
+	}
+
+	//将传入的Enum值对应的FString输出，直接输出Value对应的值
+	template<typename TEnum>
+	FORCEINLINE FString GetEnumValueAsString(const FString& Name, TEnum Value)
+	{
+		const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+		if (!EnumPtr)
+			return FString("Invalid");
+		return EnumPtr->GetEnumName((int32)Value);
+	}
+
+	//将传入的Enum值对应的FName输出
+	template<typename TEnum>
+	FORCEINLINE FString GetEnumValueAsName(const FString& Name, TEnum Value)
+	{
+		const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+		if (!EnumPtr)
+			return FName("Invalid");
+		return FName(*EnumPtr->GetEnumName((int32)Value));
+	}
+
+	//将传入的FName值对应的Enum输出
+	template<typename TEnum>
+	FORCEINLINE FString GetEnumValueFromName(const FString& Name, TEnum Value)
+	{
+		const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+		if (!EnumPtr)
+			return TEnum(0);
+		return (TEnum)EnumPtr->GetIndexByName(Value);
+	}
+
+	//将传入的FName值对应的Enum的序号输出
+	FORCEINLINE int32 GetEnumIndexFromName(const FString& Name, FName Value)
+	{
+		const UEnum* EnumPtr = FindObject<UEnum>((UObject*)ANY_PACKAGE, *Name, true);
+		if (!EnumPtr)
+			return -1;
+		return EnumPtr->GetIndexByName(Value);
+	}
+	
+}
+
+/**
+ * 
+ */
+UCLASS()
+class DATADRIVEN_API UDDCommon : public UObject
+{
+	GENERATED_BODY()
+
+public:
+
+	static UDDCommon* Get();
+
+	void InitDriver(ADDDriver* InDriver);
+
+	ADDDriver* GetDriver();
+
+private:
+
+	static UDDCommon* DDInst;
+
+	ADDDriver* Driver;
+	
+};
