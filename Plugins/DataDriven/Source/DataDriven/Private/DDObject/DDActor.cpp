@@ -21,3 +21,9 @@ void ADDActor::BeginPlay()
 	
 }
 
+void ADDActor::DDRelease()
+{
+	IDDOO::DDRelease();
+
+	
+}

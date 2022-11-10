@@ -40,6 +40,39 @@ void IDDOO::RegisterToModule(FName ModName, FName ObjName, FName ClsName)
 		DDH::Debug() << GetObjectName() << " Get DDDriver Failed !" <<DDH::Endl();
 }
 
+void IDDOO::RegisterToModule(int32 ModIndex, FName ObjName, FName ClsName)
+{
+	//判断是否已经注册到框架了
+	if (IDriver && IModule)
+		return;
+	//指定对象名和类名
+	if (!ObjName.IsNone())
+		IObjectName = ObjName;
+	if (ClsName.IsNone())
+		IClassName = ClsName;
+	//获取UObject主体
+	IBody = Cast<UObject>(this);
+	//获取驱动器
+	IDriver = UDDCommon::Get()->GetDriver();
+	//注册到模式
+	if (IDriver)
+	{
+		//如果获得的ID为负直接返回
+		ModuleIndex = ModuleIndex;
+		if (ModuleIndex < 0)
+		{
+			DDH::Debug() << GetObjectName() << " Get ModuleIndex" << ModuleIndex << " ModuleIndex Failed!" << DDH::Endl();
+			return;
+		}
+		//如果注册不成功说明还没有实例化对应的Module
+		if (!IDriver->RegisterToModule(this))
+			DDH::Debug() << GetObjectName() << " Register To ModuleIndex" << ModuleIndex << " Failed !" << DDH::Endl();
+	}
+	else
+		//DDriver不存在
+		DDH::Debug() << GetObjectName() << " Get DDDriver Failed !" <<DDH::Endl();
+}
+
 FName IDDOO::GetObjectName()
 {
 	if (!IObjectName.IsNone())
@@ -64,6 +97,13 @@ int32 IDDOO::GetModuleIndex() const
 UObject* IDDOO::GetObjectBody() const
 {
 	return IBody;
+}
+
+UWorld* IDDOO::GetDDWorld() const
+{
+	if (IDriver)
+		return IDriver->GetWorld();
+	return nullptr;
 }
 
 void IDDOO::AssignModule(UDDModule* Mod)
@@ -100,4 +140,60 @@ bool IDDOO::ActiveLife()
 
 bool IDDOO::DestroyLife()
 {
+	switch (LifeState)
+	{
+	case EBaseObjectLife::Enable:
+		DDDisable();
+		LifeState = EBaseObjectLife::Disable;
+		//设置状态为销毁
+		RunState = EBaseObjectState::Destroy;
+		break;
+	case EBaseObjectLife::Disable:
+		DDUnRegister();
+		LifeState = EBaseObjectLife::UnRegister;
+		//设置运行状态为销毁，避免从Disable状态下运行的对象没有修改RunState为销毁
+		RunState = EBaseObjectState::Destroy;
+		break;
+	case EBaseObjectLife::UnRegister:
+		DDUnLoading();
+		LifeState = EBaseObjectLife::UnLoading;
+		//返回true,停止运行销毁状态函数
+		return true;
+	}
+	return false;
+}
+
+void IDDOO::DDInit(){}
+
+void IDDOO::DDLoading(){}
+
+void IDDOO::DDRegister(){}
+
+void IDDOO::DDEnable(){}
+
+void IDDOO::DDTick(float DeltaSeconds){}
+
+void IDDOO::DDDisable(){}
+
+void IDDOO::DDUnRegister(){}
+
+void IDDOO::DDUnLoading(){}
+
+void IDDOO::DDRelease(){}
+
+void IDDOO::OnEnable()
+{
+	//设置状态为激活状态
+	LifeState = EBaseObjectLife::Enable;
+}
+
+void IDDOO::OnDisable()
+{
+	//设置状态为失活状态
+	LifeState = EBaseObjectLife::Disable;
+}
+
+void IDDOO::DDDestroy()
+{
+	IModule->ChildDestroy(GetObjectName());
 }

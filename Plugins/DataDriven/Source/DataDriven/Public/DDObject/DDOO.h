@@ -28,6 +28,9 @@ public:
 	//注册到框架
 	void RegisterToModule(FName ModName, FName ObjName = FName(), FName ClsName = FName());
 
+	//同上，只转入模组Index
+	void RegisterToModule(int32 ModIndex, FName ObjName = FName(), FName ClsName = FName());
+
 	//获取对象名
 	FName GetObjectName();
 
@@ -39,6 +42,9 @@ public:
 
 	//获取Object主体
 	UObject* GetObjectBody() const;
+
+	//框架获取世界函数
+	UWorld* GetDDWorld() const;
 
 	//从外部指定模组
 	void AssignModule(UDDModule* Mod);
@@ -62,10 +68,19 @@ public:
 	virtual void DDUnLoading();//销毁绑定资源
 	virtual void DDRelease();//释放自己
 
+	//激活对象
+	virtual void OnEnable();
+
+	//失活对象
+	virtual void OnDisable();
+
+	//销毁自己
+	void DDDestroy();
+
 public:
 
 	//是否允许帧运行，如果要允许帧运行需要在构造函数或者BeginPlay设置，在UE4里默认为false
-	bool IsAllTickEvent;
+	bool IsAllowTickEvent;
 
 	//生命周期状态
 	EBaseObjectLife LifeState;

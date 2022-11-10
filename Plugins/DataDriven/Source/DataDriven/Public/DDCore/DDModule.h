@@ -36,6 +36,9 @@ public:
 	//注册对象到数据模块
 	void RegisterObject(IDDOO* ObjectInst);
 
+	//模组所属对象销毁自身
+	void ChildDestroy(FName ObjectName);
+
 public:
 
 	TArray<UDDModule*> ChildrenModule;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DDOO.h"
 #include "UObject/Object.h"
 #include "DDObject.generated.h"
 
@@ -10,7 +11,13 @@
  * 
  */
 UCLASS()
-class DATADRIVEN_API UDDObject : public UObject
+class DATADRIVEN_API UDDObject : public UObject , public IDDOO
 {
 	GENERATED_BODY()
+
+public:
+	
+	//重写释放函数
+	virtual  void DDRelease() override;
+	
 };
