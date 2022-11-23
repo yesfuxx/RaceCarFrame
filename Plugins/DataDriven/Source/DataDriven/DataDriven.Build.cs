@@ -25,13 +25,13 @@ public class DataDriven : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
 			
 		
-		PrivateDependencyModuleNames.AddRange(
+		PrivateDependencyModuleNames.AddRange( 
 			new string[]
 			{
 				"CoreUObject",
@@ -39,6 +39,9 @@ public class DataDriven : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UMG",
+				"GameplayTasks",
+				"AIModule",
+				// "ChaosVehicles"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

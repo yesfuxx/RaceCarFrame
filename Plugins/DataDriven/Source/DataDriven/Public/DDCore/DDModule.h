@@ -39,12 +39,52 @@ public:
 	//模组所属对象销毁自身
 	void ChildDestroy(FName ObjectName);
 
+	//反射事件批量销毁对象
+	UFUNCTION()
+	void DestroyObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//反射事件批量激活对象
+	UFUNCTION()
+	void EnableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//反射事件批量失活对象
+	UFUNCTION()
+	void DisableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+	
+	//调用模组方法
+	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
+
+	//调用对象方法
+	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
+	
+	//临时方法，测试反射事件系统
+	UFUNCTION()
+	void TestReflect(int32 Counter, FString InfoStr, bool& BackResult);
+
+	UFUNCTION()
+	void TestNoParam();
+
 public:
 
 	TArray<UDDModule*> ChildrenModule;
 
 	UPROPERTY(VisibleAnywhere, Category = "DataDriven")
 	int32 ModuleIndex;
+
+protected:
+
+	//执行单个对象方法
+	void ExecuteSelfObject(DDObjectAgreement Agreement, DDParam* Param);
+	//执行其余对象的方法
+	void ExecuteOtherObject(DDObjectAgreement Agreement, DDParam* Param);
+	//支持相同类的区域对象方法
+	void ExecuteClassOtherObject(DDObjectAgreement Agreement, DDParam* Param);
+	//执行类对象的方法
+	void ExecuteSelfClass(DDObjectAgreement Agreement, DDParam* Param);
+	//执行其他类对象的方法
+	void ExecuteOtherClass(DDObjectAgreement Agreement, DDParam* Param);
+	//执行所有对象的方法
+	void ExecuteAll(DDObjectAgreement Agreement, DDParam* Param);	
 
 protected:
 

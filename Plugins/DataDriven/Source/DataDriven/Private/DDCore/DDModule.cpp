@@ -76,4 +76,247 @@ void UDDModule::ChildDestroy(FName ObjectName)
 	Model->DestroyObject(ObjectName);
 }
 
+void UDDModule::DestroyObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	Model->DestroyObject(Agreement, TargetNameGroup);
+}
+
+void UDDModule::EnableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	Model->EnableObject(Agreement, TargetNameGroup);
+}
+
+void UDDModule::DisableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	Model->DisableObject(Agreement, TargetNameGroup);
+}
+
+void UDDModule::ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
+{
+	//调用Module的UFunction
+	UFunction* ExeFunc = FindFunction(Agreement.FunctionName);
+	//如果方法存在
+	if(ExeFunc)
+	{
+		//设置调用成功
+		Param->CallResult = ECallResult::Succeed;
+		//调用方法
+		ProcessEvent(ExeFunc, Param->ParamPtr);
+	}
+	else
+	{
+		//设置方法不存在
+		Param->CallResult = ECallResult::NoFunction;
+	}
+}
+
+void UDDModule::ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//区分类型执行反射方法
+	switch (Agreement.AgreementType)
+	{
+	case EAgreementType::SelfObject:
+		ExecuteSelfObject(Agreement, Param);
+		break;
+	case EAgreementType::OtherObject:
+		ExecuteOtherObject(Agreement, Param);
+		break;
+	case EAgreementType::ClassOtherObject:
+		ExecuteClassOtherObject(Agreement, Param);
+		break;
+	case EAgreementType::SelfClass:
+		ExecuteSelfClass(Agreement, Param);
+		break;
+	case EAgreementType::OtherClass:
+		ExecuteOtherClass(Agreement, Param);
+		break;
+	case EAgreementType::All:
+		ExecuteAll(Agreement, Param);
+		break;
+	}
+}
+
+void UDDModule::TestReflect(int32 Counter, FString InfoStr, bool& BackResult)
+{
+	DDH::Debug() << Counter << " ; " << InfoStr << " : " << GetFName() << DDH::Endl();
+
+	BackResult = false;
+}
+
+void UDDModule::TestNoParam()
+{
+	DDH::Debug() << "No Param" << DDH::Endl();
+}
+
+void UDDModule::ExecuteSelfObject(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//定义存储目标对象得组
+	TArray<IDDOO*> TargetObjectGroup;
+	//从数据模组获取对象组
+	Model->GetSelfObject(Agreement.ObjectGroup, TargetObjectGroup);
+	//循环调用反射事件
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//获取反射方法
+		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
+		if (ExeFunc)
+		{
+			//设置调用成功
+			Param->CallResult = ECallResult::Succeed;
+			//执行方法
+			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
+		}
+		else
+		{
+			//设置找不到方法
+			Param->CallResult = ECallResult::NoFunction;
+		}
+	}
+	//如果获取的对象有缺失，设置结果为对象缺失，这个结果的优先级最高
+	if (TargetObjectGroup.Num() != Agreement.ObjectGroup.Num())
+		Param->CallResult = ECallResult::LackObject;
+}
+
+void UDDModule::ExecuteOtherObject(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//定义存储目标对象得组
+	TArray<IDDOO*> TargetObjectGroup;
+	//从数据模组获取对象组
+	int32 TotalObjectNum = Model->GetOtherObject(Agreement.ObjectGroup, TargetObjectGroup);
+	//循环调用反射事件
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//获取反射方法
+		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
+		if (ExeFunc)
+		{
+			//设置调用成功
+			Param->CallResult = ECallResult::Succeed;
+			//执行方法
+			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
+		}
+		else
+		{
+			//设置找不到方法
+			Param->CallResult = ECallResult::NoFunction;
+		}
+	}
+	//如果获取的对象有缺失，设置结果为对象缺失，这个结果的优先级最高
+	if (TargetObjectGroup.Num() + Agreement.ObjectGroup.Num() != TotalObjectNum)
+		Param->CallResult = ECallResult::LackObject;
+}
+
+void UDDModule::ExecuteClassOtherObject(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//定义存储目标对象得组
+	TArray<IDDOO*> TargetObjectGroup;
+	//从数据模组获取对象组
+	int32 TotalClassNum = Model->GetClassOtherObject(Agreement.ObjectGroup, TargetObjectGroup);
+	//循环调用反射事件
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//获取反射方法
+		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
+		if (ExeFunc)
+		{
+			//设置调用成功
+			Param->CallResult = ECallResult::Succeed;
+			//执行方法
+			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
+		}
+		else
+		{
+			//设置找不到方法
+			Param->CallResult = ECallResult::NoFunction;
+		}
+	}
+	//判断对象缺失
+	if (TargetObjectGroup.Num() + Agreement.ObjectGroup.Num() != TotalClassNum)
+		Param->CallResult = ECallResult::LackObject;
+}
+
+void UDDModule::ExecuteSelfClass(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//定义存储目标对象得组
+	TArray<IDDOO*> TargetObjectGroup;
+	//从数据模组获取对象组
+	Model->GetSelfClass(Agreement.ObjectGroup, TargetObjectGroup);
+	//循环调用反射事件
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//获取反射方法
+		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
+		if (ExeFunc)
+		{
+			//设置调用成功
+			Param->CallResult = ECallResult::Succeed;
+			//执行方法
+			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
+		}
+		else
+		{
+			//设置找不到方法
+			Param->CallResult = ECallResult::NoFunction;
+		}
+	}
+	//判断对象缺失
+	if (TargetObjectGroup.Num() == 0)
+		Param->CallResult = ECallResult::LackObject;
+}
+
+void UDDModule::ExecuteOtherClass(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//定义存储目标对象得组
+	TArray<IDDOO*> TargetObjectGroup;
+	//从数据模组获取对象组
+	Model->GetOtherClass(Agreement.ObjectGroup, TargetObjectGroup);
+	//循环调用反射事件
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//获取反射方法
+		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
+		if (ExeFunc)
+		{
+			//设置调用成功
+			Param->CallResult = ECallResult::Succeed;
+			//执行方法
+			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
+		}
+		else
+		{
+			//设置找不到方法
+			Param->CallResult = ECallResult::NoFunction;
+		}
+	}
+	//判断对象缺失
+	if (TargetObjectGroup.Num() == 0)
+		Param->CallResult = ECallResult::LackObject;
+}
+
+void UDDModule::ExecuteAll(DDObjectAgreement Agreement, DDParam* Param)
+{
+	//定义存储目标对象得组
+	TArray<IDDOO*> TargetObjectGroup;
+	//从数据模组获取对象组
+	Model->GetAll(TargetObjectGroup);
+	//循环调用反射事件
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//获取反射方法
+		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
+		if (ExeFunc)
+		{
+			//设置调用成功
+			Param->CallResult = ECallResult::Succeed;
+			//执行方法
+			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
+		}
+		else
+		{
+			//设置找不到方法
+			Param->CallResult = ECallResult::NoFunction;
+		}
+	}
+}
+
 

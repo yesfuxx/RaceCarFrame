@@ -28,11 +28,14 @@ public:
 	bool RegisterToModule(IDDOO* ObjectInst);
 
 #if WITH_EDITOR
-
 	//属性修改方法
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
 #endif
+
+	// 执行反射方法
+	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
+
+	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 
 public:
 
@@ -50,6 +53,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	//注册GamePlay框架到DataDriven
+	void RegisterGamePlay();
 
 protected:
 

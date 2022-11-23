@@ -3,8 +3,6 @@
 
 #include "DDCommon/DDCommon.h"
 
-
-
 UDDCommon* UDDCommon::DDInst = nullptr;
 
 UDDCommon* UDDCommon::Get()
@@ -25,4 +23,24 @@ void UDDCommon::InitDriver(ADDDriver* InDriver)
 ADDDriver* UDDCommon::GetDriver()
 {
 	return Driver;
+}
+
+void UDDCommon::InitController(APlayerController* InController)
+{
+	PlayerController = InController;
+}
+
+APlayerController* UDDCommon::GetController()
+{
+	return PlayerController;
+}
+
+void UDDCommon::SetPauseGame(bool IsPause)
+{
+	PlayerController->SetPause(IsPause);
+}
+
+const bool UDDCommon::IsPauseGame()
+{
+	return PlayerController->IsPaused();
 }

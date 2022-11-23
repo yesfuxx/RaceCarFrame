@@ -34,6 +34,12 @@ public:
 	void IterGatherModule(UDDModule* Module, TArray<UDDModule*>& GatherGroup);
 	//注册对象到模组
 	bool RegisterToModule(IDDOO* ObjectInst);
+
+	//执行反射方法 
+	void AllotExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
+
+	//执行反射方法 
+	void AllotExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 	
 protected:
 

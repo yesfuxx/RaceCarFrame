@@ -84,3 +84,19 @@ bool UDDCenterModule::RegisterToModule(IDDOO* ObjectInst)
 	}
 	return false;
 }
+
+void UDDCenterModule::AllotExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
+{
+	if (Agreement.ModuleIndex < ModuleGroup.Num() && ModuleGroup[Agreement.ModuleIndex])
+		ModuleGroup[Agreement.ModuleIndex]->ExecuteFunction(Agreement, Param);
+	else
+		Param->CallResult = ECallResult::NoModule;
+}
+
+void UDDCenterModule::AllotExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
+{
+	if (Agreement.ModuleIndex < ModuleGroup.Num() && ModuleGroup[Agreement.ModuleIndex])
+		ModuleGroup[Agreement.ModuleIndex]->ExecuteFunction(Agreement, Param);
+	else
+		Param->CallResult = ECallResult::NoModule;
+}

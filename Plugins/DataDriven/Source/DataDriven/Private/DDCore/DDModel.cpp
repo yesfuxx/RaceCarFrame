@@ -198,7 +198,7 @@ void UDDModel::GetSelfObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& Targ
 			TargetObjectGroup.Push(*ObjectGroup.Find(TargetNameGroup[i]));
 }
 
-void UDDModel::GetOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+int32 UDDModel::GetOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
 {
 	for (TMap<FName, IDDOO*>::TIterator It(ObjectGroup); It; ++It)
 	{
@@ -215,12 +215,14 @@ void UDDModel::GetOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& Tar
 		if (!IsSame)
 			TargetObjectGroup.Push(It->Value);
 	}
+	//返回全部对象的数量
+	return ObjectGroup.Num();
 }
 
-void UDDModel::GetClassOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+int32 UDDModel::GetClassOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
 {
 	if (!ObjectGroup.Contains(TargetNameGroup[0]))
-		return;
+		return 0;
 	//先获取对象类名
 	FName ObjectClassName = (*ObjectGroup.Find(TargetNameGroup[0]))->GetClassName();
 	//迭代对象类实例数组
@@ -238,6 +240,8 @@ void UDDModel::GetClassOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>
 		if (!IsSame)
 			TargetObjectGroup.Push(*It);
 	}
+	//返回对象类名对应的对象组的数量
+	return (*ObjectClassGroup.Find(ObjectClassName)).Num();
 }
 
 void UDDModel::GetSelfClass(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
@@ -245,7 +249,7 @@ void UDDModel::GetSelfClass(TArray<FName> TargetNameGroup, TArray<IDDOO*>& Targe
 	for (int i = 0; i <TargetNameGroup.Num(); ++i)
 	{
 		//如果不包含这个类，跳到下一个循环
-		if (ObjectClassGroup.Contains(TargetNameGroup[i]))
+		if (!ObjectClassGroup.Contains(TargetNameGroup[i]))
 			continue;;
 		TargetObjectGroup.Append(*ObjectClassGroup.Find((TargetNameGroup[i])));
 	}

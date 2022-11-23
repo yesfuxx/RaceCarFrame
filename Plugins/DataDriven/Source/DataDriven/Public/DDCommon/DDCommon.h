@@ -9,6 +9,7 @@
 #include "DDCommon.generated.h"
 
 class ADDDriver;
+class APlayerController;
 
 namespace DDH
 {
@@ -85,6 +86,13 @@ namespace DDH
 			return -1;
 		return EnumPtr->GetIndexByName(Value);
 	}
+
+	//获取反射调用方法
+	FORCEINLINE FString GetCallResult(ECallResult Value)
+	{
+		const UEnum* EnumPtr = FindObject<UEnum>((UObject*)ANY_PACKAGE, *FString("ECallResult"), true);
+		return EnumPtr->GetEnumName((int32)Value); 
+	}
 	
 }
 
@@ -104,10 +112,23 @@ public:
 
 	ADDDriver* GetDriver();
 
+	void InitController(APlayerController* InController);
+
+	APlayerController* GetController();
+
+	//暂停游戏
+	void SetPauseGame(bool IsPause);
+
+	//获取是否暂停游戏
+	const bool IsPauseGame();
+
 private:
 
 	static UDDCommon* DDInst;
 
 	ADDDriver* Driver;
+
+	APlayerController* PlayerController;
+
 	
 };

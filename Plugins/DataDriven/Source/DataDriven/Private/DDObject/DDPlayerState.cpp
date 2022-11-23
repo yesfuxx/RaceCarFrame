@@ -3,3 +3,14 @@
 
 #include "DDObject/DDPlayerState.h"
 
+ADDPlayerState::ADDPlayerState()
+{
+	PrimaryActorTick.bCanEverTick = false;
+}
+
+void ADDPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+	//自动注册到框架
+	RegisterToModule(ModuleName, ObjectName, ClassName);
+}

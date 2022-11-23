@@ -3,6 +3,7 @@
 
 #include "DDCore/DDDriver.h"
 #include "DDObject/DDOO.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -36,8 +37,28 @@ void ADDDriver::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//注册GamePlay到框架
+	RegisterGamePlay();
+
 	//迭代调用Init函数
 	Center->IterModuleInit(Center);
+}
+
+void ADDDriver::RegisterGamePlay()
+{
+	//获取GameInstance
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
+	//如果存在并且继承自IDDOO，就注册进Center，类名和对象名都是GameInstance
+	if (GameInstance && Cast<IDDOO>(GameInstance))
+		Cast<IDDOO>(GameInstance)->RegisterToModule("Center", "GameInstance", "GameInstance");
+
+	//获取Controller并且注册到DDCommon
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	//注册到Common
+	if (!PlayerController)
+		DDH::Debug() << "No PlayerController" << DDH::Endl();
+	else
+		UDDCommon::Get()->InitController(PlayerController);	
 }
 
 // Called every frame
@@ -72,4 +93,15 @@ void ADDDriver::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
 		Center->IterChangeModuleType(Center, ModuleType);
 }
 #endif
+
+void ADDDriver::ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
+{
+	Center->AllotExecuteFunction(Agreement, Param);
+}
+
+void ADDDriver::ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
+{
+	Center->AllotExecuteFunction(Agreement, Param);
+}
+
 

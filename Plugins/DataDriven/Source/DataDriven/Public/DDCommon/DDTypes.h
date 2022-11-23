@@ -7,6 +7,7 @@
 #include "Engine/GameEngine.h"
 #include "DDTypes.generated.h"
 
+// enum class EAgreementType : uint8;
 /**
  * 
  */
@@ -138,9 +139,45 @@ enum class EBaseObjectState : uint8
 	Stable,		//稳定
 	Destroy		//销毁
 };
+
 #pragma endregion
 
 #pragma region ReflectPart
+
+//调用结果，项目开发时请确保每次都能调用成功
+UENUM()
+enum class ECallResult : uint8
+{
+	NoModule = 0,	//缺失模组
+	LackObject,		//缺失部分对象
+	NoFunction,		//缺失方法
+	Succeed			//调用成功
+};
+
+//通信参数结构体基类
+struct DDParam
+{
+public:
+
+	//调用结果
+	ECallResult CallResult;
+
+	//参数指针
+	void* ParamPtr;
+};
+
+//通信协议，Module方法
+struct DDModuleAgreement
+{
+public:
+
+	//模组ID
+	int32 ModuleIndex;
+
+	//方法名
+	FName FunctionName;
+	
+};
 
 //对象调用协议
 UENUM()
@@ -154,5 +191,157 @@ enum class EAgreementType : uint8
 	All					//给所有的对象通信
 };
 
+//通信协议，DDOO方法
+struct DDObjectAgreement
+{
+public:
+
+	//模组ID
+	int32 ModuleIndex;
+
+	//协议类型
+	EAgreementType AgreementType;
+
+	//对象组名
+	TArray<FName> ObjectGroup;
+
+	//方法名
+	FName FunctionName;
+};
+
+#pragma endregion
+
+
+#pragma region DDAnyFun
+
+//存储任意类型方法结构体
+struct DDAnyFun
+{
+	struct BaseFun
+	{
+	public:
+		virtual ~BaseFun() {};
+	};
+	template<typename RetType, typename... VarTypes>
+	struct ValFun : public BaseFun
+	{
+	public:
+		TFunction<RetType(VarTypes...)> TarFun;
+		ValFun(const TFunction<RetType(VarTypes...)> InsFun) : TarFun(InsFun) {}
+		RetType Execute(VarTypes... Params)
+		{
+			return TarFun(Params...);
+		}
+	};
+	BaseFun* FunPtr;
+public:
+	DDAnyFun() : FunPtr(nullptr) {}
+	template<typename RetType, typename... VarTypes>
+	DDAnyFun(const TFunction<RetType(VarTypes...)> InsFun) : FunPtr(new ValFun<RetType, VarTypes...>(InsFun)) {}
+	~DDAnyFun() { delete FunPtr; }
+	template<typename RetType, typename... VarTypes>
+	RetType Execute(VarTypes... Params)
+	{
+		ValFun<RetType, VarTypes...>* SubFunPtr = static_cast<ValFun<RetType, VarTypes...>*>(FunPtr);
+		return SubFunPtr->Execute(Params...);
+	}
+	template<typename RetType, typename... VarTypes>
+	TFunction<RetType(VarTypes...)>& GetFun()
+	{
+		ValFun<RetType, VarTypes...>* SubFunPtr = static_cast<ValFun<RetType, VarTypes...>*>(FunPtr);
+		return SubFunPtr->TarFun;
+	}
+};
+
+#pragma endregion
+
+#pragma region  aaa
+
+// //存储任意类型的数据结构
+// struct AnyElement
+// {
+// 	//元素父结构体
+// 	struct BaseElement
+// 	{
+// 	public:
+// 		virtual ~BaseElement(){}
+// 	};
+// 	//实际存储值的结构体
+// 	template<typename T>
+// 	struct ValueElement : public BaseElement
+// 	{
+// 	public:
+// 		T Value;
+// 		ValueElement(const T& InValue) : Value(InValue) {}
+// 	};
+// 	//父结构体指针，用于存储实例化的子结构体的地址
+// 	BaseElement* ElementPtr;
+// public:
+// 	AnyElement() : ElementPtr(nullptr) {}
+// 	//构造函数传入值并且实例化子结构体存储于父结构体指针
+// 	template<typename T>
+// 	AnyElement(const T& InValue) : ElementPtr(new ValueElement<T>(InValue)) {}
+// 	~AnyElement() { delete ElementPtr; }
+// 	//获取保存的变量
+// 	template<typename T>
+// 	T& Get()
+// 	{
+// 		//通过将父类指针强转为子类指针来获取子类指针内保存的值
+// 		ValueElement<T>* SubPtr = static_cast<ValueElement<T>*>(ElementPtr);
+// 		return SubPtr->Value;
+// 	}
+// };
+#pragma endregion
+
+
+#pragma region DDMsgNode
+
+//事件节点
+struct DDMsgNode
+{
+	//被调用的接口数量
+	int32 CallCount;
+	//方法列表
+	TMap<int32, DDAnyFun*> FunQuene;
+	//注册方法
+	template<typename RetType, typename... VarTypes>
+	int32 RegisterFun(TFunction<RetType(VarTypes...)> InsFun);
+	//注销方法
+	void UnRegisterFun(int32 FunID)
+	{
+		//从列表移除对象
+		DDAnyFun* DesPtr = * FunQuene.Find(FunID);
+		FunQuene.Remove(FunID);
+		delete DesPtr;
+	}
+	//执行方法
+	template<typename RetType, typename... VarTypes>
+	RetType Execute(VarTypes... Params);
+	//判断是否有绑定的函数
+	bool IsBound() { return FunQuene.Num() > 0; }
+	//如果有绑定函数就去执行
+	template<typename RetType, typename... VarTypes>
+	bool ExecuteIfBound(VarTypes... Params);
+	//构造函数,初始化CallCount为0
+	DDMsgNode() : CallCount(0){}
+};
+
+template <typename RetType, typename... VarTypes>
+int32 DDMsgNode::RegisterFun(TFunction<RetType(VarTypes...)> InsFun)
+{
+	//获取方法序列里的所有下标
+	TArray<int32> FunKeyQuene;
+	FunQuene.GenerateKeyArray(FunKeyQuene);
+	//获取新下标
+	int32 NewID;
+	// for (int32 i = FunKeyQuene)
+	
+}
+
+template <typename RetType, typename... VarTypes>
+RetType DDMsgNode::Execute(VarTypes... Params)
+{
+	//
+}
 
 #pragma endregion 

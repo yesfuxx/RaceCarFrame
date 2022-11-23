@@ -31,10 +31,21 @@ public:
 
 protected:
 
+	//执行反射方法
+	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
+
+	//执行反射方法
+	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
+	
+protected:
+
 	//保存对应的模组
 	UDDModule* IModule;
 
 	//保存驱动器
 	ADDDriver* IDriver;
+
+	//对应模组的序号
+	int32 ModuleIndex;
 	
 };

@@ -7,28 +7,23 @@
 ADDCharacter::ADDCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
+}
+
+void ADDCharacter::DDRelease()
+{
+	IDDOO::DDRelease();
+	//能调用这个方法那么一定是注册到了框架，获取的世界一定不为空
+	GetDDWorld()->DestroyActor(this);
 }
 
 // Called when the game starts or when spawned
 void ADDCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	//自动注册到框架
+	RegisterToModule(ModuleName, ObjectName, ClassName);
 }
 
-// Called every frame
-void ADDCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void ADDCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
 

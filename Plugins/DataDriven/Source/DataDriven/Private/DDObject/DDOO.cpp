@@ -15,7 +15,7 @@ void IDDOO::RegisterToModule(FName ModName, FName ObjName, FName ClsName)
 	//指定对象名和类名
 	if (!ObjName.IsNone())
 		IObjectName = ObjName;
-	if (ClsName.IsNone())
+	if (!ClsName.IsNone())
 		IClassName = ClsName;
 	//获取UObject主体
 	IBody = Cast<UObject>(this);
@@ -48,7 +48,7 @@ void IDDOO::RegisterToModule(int32 ModIndex, FName ObjName, FName ClsName)
 	//指定对象名和类名
 	if (!ObjName.IsNone())
 		IObjectName = ObjName;
-	if (ClsName.IsNone())
+	if (!ClsName.IsNone())
 		IClassName = ClsName;
 	//获取UObject主体
 	IBody = Cast<UObject>(this);
@@ -85,7 +85,7 @@ FName IDDOO::GetClassName()
 {
 	if (!IClassName.IsNone())
 		return IClassName;
-	IClassName = IBody->StaticClass()->GetFName();
+	IClassName = IBody->GetClass()->GetFName();
 	return IClassName;
 }
 
@@ -196,4 +196,20 @@ void IDDOO::OnDisable()
 void IDDOO::DDDestroy()
 {
 	IModule->ChildDestroy(GetObjectName());
+}
+
+void IDDOO::ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
+{
+	if (Agreement.ModuleIndex == ModuleIndex)
+		IModule->ExecuteFunction(Agreement, Param);
+	else
+		IDriver->ExecuteFunction(Agreement, Param);	
+}
+
+void IDDOO::ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
+{
+	if (Agreement.ModuleIndex == ModuleIndex)
+		IModule->ExecuteFunction(Agreement, Param);
+	else
+		IDriver->ExecuteFunction(Agreement, Param);
 }

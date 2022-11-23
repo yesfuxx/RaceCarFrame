@@ -3,3 +3,14 @@
 
 #include "DDObject/DDLevelScriptActor.h"
 
+ADDLevelScriptActor::ADDLevelScriptActor()
+{
+	PrimaryActorTick.bCanEverTick = false;
+}
+
+void ADDLevelScriptActor::BeginPlay()
+{
+	Super::BeginPlay();
+	//自动注册到框架
+	RegisterToModule(ModuleName, ObjectName, ClassName);
+}
